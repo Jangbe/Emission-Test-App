@@ -54,6 +54,7 @@ import kelompok1.pam.emissiontestapp.repository.AuthRepository
 import kelompok1.pam.emissiontestapp.ui.home.SuccessLoginActivity
 import kelompok1.pam.emissiontestapp.ui.theme.EmissionTestAppTheme
 import kelompok1.pam.emissiontestapp.utils.Resource
+import kelompok1.pam.emissiontestapp.utils.TokenManager
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
@@ -62,11 +63,27 @@ class LoginActivity : ComponentActivity() {
         LoginViewModel(AuthRepository())
     }
 
+    private var username: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            EmissionTestAppTheme {
-                LoginScreen(viewModel)
+
+        val token = TokenManager.getToken(this)
+        if (token != null) {
+            // Token tersedia, arahkan ke halaman setelah login
+            navigateToSuccessLoginActivity()
+        } else {
+            // Token tidak ada, tampilkan layar login
+            setContent {
+                EmissionTestAppTheme {
+                    LoginScreen(
+                        viewModel = viewModel,
+                        onLoginSuccess = { loggedInUsername ->
+                            username = loggedInUsername
+                            navigateToSuccessLoginActivity()
+                        }
+                    )
+                }
             }
         }
 
@@ -79,18 +96,23 @@ class LoginActivity : ComponentActivity() {
                 Log.d("LoginActivity", "Login state: $state")
                 when (state) {
                     is Resource.Loading -> {
-                        // Tambahkan log untuk state loading
                         Log.d("LoginActivity", "Loading...")
                     }
                     is Resource.Success -> {
-                        // Log hasil token atau data lainnya
                         Log.d("LoginActivity", "Success: ${state.data?.data?.token}")
+
+                        // Simpan token di SharedPreferences
+                        state.data?.data?.token?.let { token ->
+                            TokenManager.saveToken(this@LoginActivity, token)
+                        }
+                        state.data?.data?.user?.username?.let { username ->
+                            TokenManager.saveUsername(this@LoginActivity, username)
+                        }
+
                         Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
-                        // Navigate to next screen
                         navigateToSuccessLoginActivity()
                     }
                     is Resource.Error -> {
-                        // Log error message
                         Log.e("LoginActivity", "Error: ${state.message}")
                         Toast.makeText(this@LoginActivity, state.message, Toast.LENGTH_SHORT).show()
                     }
@@ -101,6 +123,7 @@ class LoginActivity : ComponentActivity() {
 
     private fun navigateToSuccessLoginActivity() {
         val intent = Intent(this, SuccessLoginActivity::class.java)
+        intent.putExtra("USERNAME", username)
         startActivity(intent)
         finish() // Optional: finish the current activity
     }
@@ -131,7 +154,7 @@ fun GradientButton(
 }
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel) {
+fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val passwordVisible = remember { mutableStateOf(false) }
@@ -229,6 +252,7 @@ fun LoginScreen(viewModel: LoginViewModel) {
                 onClick = {
 //                    if (username.value.isNotEmpty() && password.value.isNotEmpty()) {
                         viewModel.login(username.value, password.value)
+                        onLoginSuccess(username.value)
 //                    } else {
 //                        Toast.makeText(this@, "Username and password cannot be empty", Toast.LENGTH_SHORT).show()
 //                    }
@@ -335,7 +359,12 @@ fun LoginScreenPreview() {
     EmissionTestAppTheme {
         val dummyViewModel = LoginViewModel(FakeAuthRepository())
         EmissionTestAppTheme {
-            LoginScreen(viewModel = dummyViewModel)
+            LoginScreen(
+                viewModel = dummyViewModel,
+                onLoginSuccess = { username ->
+                    println("Preview login success with username: $username")
+                }
+            )
         }
     }
 }

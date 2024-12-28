@@ -1,5 +1,6 @@
 package kelompok1.pam.emissiontestapp.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,22 +28,24 @@ import androidx.compose.ui.unit.sp
 import kelompok1.pam.emissiontestapp.R
 import kelompok1.pam.emissiontestapp.ui.login.GradientButton
 import kelompok1.pam.emissiontestapp.ui.theme.EmissionTestAppTheme
+import kelompok1.pam.emissiontestapp.utils.TokenManager
 
 class SuccessLoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val username = TokenManager.getUsername(this) ?: "Guest"
         setContent {
             EmissionTestAppTheme {
-                SuccessLoginScreen()
+                SuccessLoginScreen(username)
             }
         }
     }
 }
 
 @Composable
-fun SuccessLoginScreen() {
-//    val username = remember { mutableStateOf("") }
+fun SuccessLoginScreen(username: String) {
     val gradient = Brush.linearGradient(listOf(Color(0xFF6B50F6), Color(0xFFCC8FED)))
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -63,7 +66,7 @@ fun SuccessLoginScreen() {
             )
 
             Text(
-                text = "Welcome, Danang",
+                text = "Welcome, $username",
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = 24.sp,
                 color = Color.Black,
@@ -86,7 +89,10 @@ fun SuccessLoginScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             GradientButton(
-                onClick = {  },
+                onClick = {
+                    val intent = Intent(context, HomeActivity::class.java)
+                    context.startActivity(intent)
+                },
                 text = "Go To Home",
                 gradient = gradient,
                 modifier = Modifier
@@ -101,6 +107,6 @@ fun SuccessLoginScreen() {
 @Composable
 fun SuccessLoginScreenPreview() {
     EmissionTestAppTheme {
-        SuccessLoginScreen()
+        SuccessLoginScreen("Danang")
     }
 }
