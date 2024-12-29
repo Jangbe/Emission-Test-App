@@ -1,5 +1,6 @@
 package kelompok1.pam.emissiontestapp.ui.login
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -202,7 +206,12 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                         modifier = Modifier.size(48.dp)
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color(0xFFF7F8F8),
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp)),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
             )
 
@@ -226,8 +235,13 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                         Icon(painter = painterResource(id = icon), contentDescription = null)
                     }
                 },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color(0xFFF7F8F8),
+                ),
                 visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp)),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
             )
 
@@ -247,15 +261,16 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                 .align(Alignment.BottomCenter),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            val context = LocalContext.current
             // Login button
             GradientButton(
                 onClick = {
-//                    if (username.value.isNotEmpty() && password.value.isNotEmpty()) {
-                        viewModel.login(username.value, password.value)
+                    if (username.value.isNotEmpty() && password.value.isNotEmpty()) {
+                        viewModel.login(context, username.value, password.value)
                         onLoginSuccess(username.value)
-//                    } else {
-//                        Toast.makeText(this@, "Username and password cannot be empty", Toast.LENGTH_SHORT).show()
-//                    }
+                    } else {
+                        Toast.makeText(context, "Username and password cannot be empty", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 text = "Login",
                 gradient = gradient,
@@ -317,7 +332,7 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
 }
 
 class FakeAuthRepository : AuthRepository() {
-    override suspend fun login(username: String, password: String): Response<LoginResponse> {
+    override suspend fun login(context: Context, username: String, password: String): Response<LoginResponse> {
         val meta = Meta(
             status = 200,
             message = "Masuk berhasil, selamat datang kembali"

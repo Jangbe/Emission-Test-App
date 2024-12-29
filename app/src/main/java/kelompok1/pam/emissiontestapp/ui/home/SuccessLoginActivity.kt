@@ -33,10 +33,12 @@ import kelompok1.pam.emissiontestapp.utils.TokenManager
 class SuccessLoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val username = TokenManager.getUsername(this) ?: "Guest"
+        val username = TokenManager.getUsername(this)
         setContent {
             EmissionTestAppTheme {
-                SuccessLoginScreen(username)
+                if (username != null) {
+                    SuccessLoginScreen(username)
+                }
             }
         }
     }
