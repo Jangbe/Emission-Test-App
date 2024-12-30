@@ -1,9 +1,6 @@
 package kelompok1.pam.emissiontestapp.data.api
 
 import android.content.Context
-import com.google.gson.GsonBuilder
-import kelompok1.pam.emissiontestapp.data.model.LoginData
-import kelompok1.pam.emissiontestapp.utils.LoginDataDeserializer
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -21,14 +18,10 @@ object ApiClient {
             .addInterceptor(AuthInterceptor(context)) // Add AuthInterceptor to OkHttpClient
             .build()
 
-        val gson = GsonBuilder()
-            .registerTypeAdapter(LoginData::class.java, LoginDataDeserializer())
-            .create()
-
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient) // Set OkHttpClient with interceptor
-            .addConverterFactory(GsonConverterFactory.create(gson)) // Add Gson converter
+            .addConverterFactory(GsonConverterFactory.create()) // Add Gson converter
             .build()
     }
 
