@@ -22,7 +22,7 @@ open class LoginViewModel(private val authRepository: AuthRepository) : ViewMode
             _loginState.value = Resource.Loading()
             try {
                 val response = authRepository.login(context, username, password)
-                Log.d("LoginViewModel", "Response received: $response")
+                Log.d("LoginViewModel", "Raw response: ${response.body()}")
                 if (response.isSuccessful) {
                     val token = response.body()?.data?.token
                     if (token != null) {
@@ -38,7 +38,8 @@ open class LoginViewModel(private val authRepository: AuthRepository) : ViewMode
                 }
             } catch (e: Exception) {
                 Log.e("LoginViewModel", "Exception during login: ${e.message}", e)
-                _loginState.value = Resource.Error("An error occurred. Please check your connection.")
+                _loginState.value =
+                    Resource.Error("An error occurred. Please check your connection.")
             }
         }
     }
