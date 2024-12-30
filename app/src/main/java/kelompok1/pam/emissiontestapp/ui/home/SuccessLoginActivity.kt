@@ -97,9 +97,12 @@ fun SuccessLoginScreen(username: String) {
                 },
                 text = "Go To Home",
                 gradient = gradient,
-                modifier = Modifier
+                buttonModifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                boxModifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
             )
         }
     }

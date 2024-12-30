@@ -2,6 +2,7 @@ package kelompok1.pam.emissiontestapp.ui.form
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,15 +15,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -34,6 +43,18 @@ import kelompok1.pam.emissiontestapp.ui.login.GradientButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormScreen() {
+    val bahanBakarOptions = listOf("Bensin", "Solar", "Gas")
+    val kendaraanKategoriOptions = listOf(
+        "Angkutan Orang",
+        "Angkutan Barang",
+        "Angkutan Gandengan",
+        "Sepeda Motor 2 Tak",
+        "Sepeda Motor 4 Tak"
+    )
+
+    var selectedBahanBakar by remember { mutableStateOf("") }
+    var selectedKendaraanKategori by remember { mutableStateOf("") }
+
     val gradient = Brush.linearGradient(
         listOf(
             Color(0xFF6B50F6).copy(alpha = 0.8f),
@@ -65,15 +86,31 @@ fun FormScreen() {
                 .padding(16.dp)
         ) {
             // Create form fields
+            Text(
+                text = "Data Kendaraan",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             FormField("No. Polisi")
             Spacer(modifier = Modifier.height(8.dp))
             FormRow("Merk", "Type")
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("CC", "Bahan Bakar")
+            FormRow("CC", "Tahun")
             Spacer(modifier = Modifier.height(8.dp))
-            FormField("No Rangka (VIN)")
+            DropdownField(
+                label = "Bahan Bakar",
+                options = bahanBakarOptions,
+                selectedOption = selectedBahanBakar,
+                onOptionSelected = { selectedBahanBakar = it }
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            FormField("No. Mesin")
+            DropdownField(
+                label = "Kategori Kendaraan",
+                options = kendaraanKategoriOptions,
+                selectedOption = selectedKendaraanKategori,
+                onOptionSelected = { selectedKendaraanKategori = it }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             FormRow("Odometer (KM)", "CO (%)")
             Spacer(modifier = Modifier.height(8.dp))
@@ -92,11 +129,63 @@ fun FormScreen() {
                 onClick = { },
                 text = "Uji",
                 gradient = gradient,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                buttonModifier = Modifier
+                    .padding(vertical = 16.dp)
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.dp),
+                boxModifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DropdownField(
+    label: String,
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = selectedOption,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(text = label, color = Color(0xFFB6B4C2)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color(0xFFDDDDDD),
+                )
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -113,7 +202,7 @@ fun FormField(label: String) {
         shape = RoundedCornerShape(8.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = Color(0xFFF7F8F8),
+            unfocusedBorderColor = Color(0xFFDDDDDD),
         ),
     )
 }
@@ -137,7 +226,7 @@ fun FormField(label: String, modifier: Modifier = Modifier) {
         shape = RoundedCornerShape(8.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedBorderColor = Color(0xFFF7F8F8),
+            unfocusedBorderColor = Color(0xFFDDDDDD),
         ),
     )
 }
