@@ -18,10 +18,11 @@ open class LoginViewModel(private val authRepository: AuthRepository) : ViewMode
 
     fun login(context: Context, username: String, password: String) {
         viewModelScope.launch {
-            Log.d("LoginViewModel", "Login initiated with email: $username")
+            Log.d("LoginViewModel", "Login initiated with username: $username")
             _loginState.value = Resource.Loading()
             try {
                 val response = authRepository.login(context, username, password)
+                Log.d("LoginViewModel", "Response received: $response")
                 if (response.isSuccessful) {
                     val token = response.body()?.data?.token
                     if (token != null) {
@@ -30,6 +31,7 @@ open class LoginViewModel(private val authRepository: AuthRepository) : ViewMode
                         TokenManager.saveUsername(context, username)
                     }
                     _loginState.value = Resource.Success(response.body()!!)
+                    Log.d("LoginViewModel", "Setting state to $_loginState")
                 } else {
                     Log.e("LoginViewModel", "Login failed: ${response.errorBody()?.string()}")
                     _loginState.value = Resource.Error("Login failed. Please try again.")

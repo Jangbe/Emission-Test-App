@@ -100,11 +100,14 @@ class HomeActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(context: Context, username: String, viewModelFactory: EmissionTestViewModelFactory) {
+fun HomeScreen(
+    context: Context,
+    username: String,
+    viewModelFactory: EmissionTestViewModelFactory,
+    navController: NavHostController
+) {
     // Inisialisasi ViewModel dengan factory
     val viewModel: EmissionTestViewModel = viewModel(factory = viewModelFactory)
-
-    val navController = rememberNavController()
 
     // Pastikan fungsi fetchEmissionTests dipanggil
     LaunchedEffect(Unit) {
@@ -116,7 +119,15 @@ fun HomeScreen(context: Context, username: String, viewModelFactory: EmissionTes
 
     when (val state = emissionTestsState) {
         is Resource.Loading -> {
-            CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(48.dp)
+                )
+            }
         }
         is Resource.Success -> {
             val data = state.data
@@ -221,11 +232,13 @@ fun HomeScreenContent(
                             color = Color.White
                         )
                         GradientButton(
-                            onClick = { navController.navigate("form") },
+                            onClick = {  },
                             text = "View More",
                             gradient = gradient,
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 16.dp)
+                            buttonModifier = Modifier
+                                .padding(vertical = 16.dp),
+                            boxModifier = Modifier
+                                .padding(vertical = 16.dp, horizontal = 24.dp)
                         )
                     }
 
@@ -272,11 +285,17 @@ fun HomeScreenContent(
                         fontWeight = FontWeight.Medium
                     )
                     GradientButton(
-                        onClick = { },
+                        onClick = {
+                            navController.navigate("form") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        },
                         text = "Check",
                         gradient = gradient,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                        buttonModifier = Modifier
+                            .padding(vertical = 16.dp),
+                        boxModifier = Modifier
+                            .padding(vertical = 16.dp, horizontal = 24.dp)
                     )
                 }
             }
@@ -345,8 +364,10 @@ fun StatisticCard(title: String, value: String) {
                         onClick = { },
                         text = "View More",
                         gradient = gradient,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                        buttonModifier = Modifier
+                            .padding(vertical = 16.dp),
+                        boxModifier = Modifier
+                            .padding(vertical = 12.dp, horizontal = 24.dp)
                     )
                 }
                 Text(
@@ -381,7 +402,7 @@ fun NavHostContainer(
 
             // route : Home
             composable("home") {
-                HomeScreen(context, username, viewModelFactory)
+                HomeScreen(context, username, viewModelFactory, navController)
             }
 
             // route : form

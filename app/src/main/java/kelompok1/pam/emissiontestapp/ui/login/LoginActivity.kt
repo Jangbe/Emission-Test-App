@@ -7,7 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,7 +86,6 @@ class LoginActivity : ComponentActivity() {
                         viewModel = viewModel,
                         onLoginSuccess = { loggedInUsername ->
                             username = loggedInUsername
-                            navigateToSuccessLoginActivity()
                         }
                     )
                 }
@@ -137,11 +138,12 @@ class LoginActivity : ComponentActivity() {
 fun GradientButton(
     text: String,
     gradient : Brush,
-    modifier: Modifier = Modifier,
+    buttonModifier: Modifier = Modifier,
+    boxModifier: Modifier = Modifier,
     onClick: () -> Unit = { },
 ) {
     Button(
-        modifier = modifier,
+        modifier = buttonModifier,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         contentPadding = PaddingValues(),
         onClick = { onClick() },
@@ -149,10 +151,10 @@ fun GradientButton(
         Box(
             modifier = Modifier
                 .background(gradient)
-                .then(modifier),
+                .then(boxModifier),
             contentAlignment = Alignment.Center,
         ) {
-            Text(text = text)
+            Text(text = text, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -207,11 +209,11 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                     )
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color(0xFFF7F8F8),
+                    unfocusedBorderColor = Color(0xFFDDDDDD),
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp)),
+                    .background(Color(0xFFF7F8F8), RoundedCornerShape(16.dp)),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
             )
 
@@ -236,12 +238,12 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = Color(0xFFF7F8F8),
+                    unfocusedBorderColor = Color(0xFFDDDDDD),
                 ),
                 visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp)),
+                    .background(Color(0xFFF7F8F8), RoundedCornerShape(16.dp)),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
             )
 
@@ -274,7 +276,10 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                 },
                 text = "Login",
                 gradient = gradient,
-                modifier = Modifier
+                buttonModifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                boxModifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 16.dp)
             )
@@ -319,10 +324,30 @@ fun LoginScreen(viewModel: LoginViewModel, onLoginSuccess: (String) -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 IconButton(onClick = { /* TODO: Handle Google login */ }) {
-                    Icon(painter = painterResource(id = R.drawable.ic_google_background), contentDescription = "Google Login")
+                    Box(
+                        modifier = Modifier
+                            .border(1.dp, Color.LightGray, shape = RoundedCornerShape(14.dp))
+                            .padding(8.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.google),
+                            contentDescription = "Google Login",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
                 IconButton(onClick = { /* TODO: Handle Facebook login */ }) {
-                    Icon(painter = painterResource(id = R.drawable.ic_facebook_foreground), contentDescription = "Facebook Login")
+                    Box(
+                        modifier = Modifier
+                            .border(1.dp, Color.LightGray, shape = RoundedCornerShape(14.dp))
+                            .padding(8.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_facebook),
+                            contentDescription = "Facebook Login",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 
