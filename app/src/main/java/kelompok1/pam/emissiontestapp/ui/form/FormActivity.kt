@@ -1,5 +1,6 @@
 package kelompok1.pam.emissiontestapp.ui.form
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -152,6 +153,7 @@ fun DropdownField(
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    Log.d("Form", "Expanded: $expanded")
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -162,7 +164,10 @@ fun DropdownField(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp))
-                .clickable { expanded = !expanded },
+                .clickable {
+                    Log.d("DropdownField", "TextField clicked")
+                    expanded = !expanded },
+            enabled = false,
             shape = RoundedCornerShape(8.dp),
             trailingIcon = {
                 Icon(
@@ -177,7 +182,10 @@ fun DropdownField(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth().zIndex(1f).background(Color.Red.copy(alpha = 0.5f))
+            modifier = Modifier
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+                .zIndex(1f)
+                .fillMaxWidth()
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
@@ -185,7 +193,7 @@ fun DropdownField(
                     onClick = {
                         onOptionSelected(option)
                         expanded = false
-                    }
+                    },
                 )
             }
         }
