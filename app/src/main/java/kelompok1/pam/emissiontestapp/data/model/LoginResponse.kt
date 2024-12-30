@@ -1,8 +1,12 @@
 package kelompok1.pam.emissiontestapp.data.model
 
+import com.google.gson.annotations.JsonAdapter
+import kelompok1.pam.emissiontestapp.utils.LoginDataDeserializer
+
 data class LoginResponse(
     val meta: Meta,
-    val data: LoginData
+    @JsonAdapter(LoginDataDeserializer::class)
+    val data: LoginData?
 )
 
 data class Meta(

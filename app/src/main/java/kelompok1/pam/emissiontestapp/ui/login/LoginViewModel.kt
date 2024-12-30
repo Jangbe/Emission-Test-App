@@ -24,14 +24,18 @@ open class LoginViewModel(private val authRepository: AuthRepository) : ViewMode
                 val response = authRepository.login(context, username, password)
                 Log.d("LoginViewModel", "Raw response: ${response.body()}")
                 if (response.isSuccessful) {
-                    val token = response.body()?.data?.token
-                    if (token != null) {
-                        Log.d("LoginViewModel", "Login successful: $token")
-                        TokenManager.saveToken(context, token)
+                    val responseBody = response.body()
+                    val loginData = responseBody?.data
+
+                    if (loginData != null) {
+                        Log.d("LoginViewModel", "Login successful: ${loginData.token}")
+                        TokenManager.saveToken(context, loginData.token)
                         TokenManager.saveUsername(context, username)
+                        _loginState.value = Resource.Success(responseBody)
+                    } else {
+                        Log.e("LoginViewModel", "Login failed: ${responseBody?.meta?.message}")
+                        _loginState.value = Resource.Error(responseBody?.meta?.message ?: "Login failed. Please try again.")
                     }
-                    _loginState.value = Resource.Success(response.body()!!)
-                    Log.d("LoginViewModel", "Setting state to $_loginState")
                 } else {
                     Log.e("LoginViewModel", "Login failed: ${response.errorBody()?.string()}")
                     _loginState.value = Resource.Error("Login failed. Please try again.")
