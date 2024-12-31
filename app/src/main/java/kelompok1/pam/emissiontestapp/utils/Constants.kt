@@ -24,10 +24,10 @@ object Constants {
             inactiveIcon = R.drawable.car
         ),
         BottomNavItem(
-            label = "Camera",
-            route = "camera",
-            activeIcon = R.drawable.ic_camera_linear,
-            inactiveIcon = R.drawable.ic_camera_gray
+            label = "List",
+            route = "list",
+            activeIcon = R.drawable.ic_list_linear,
+            inactiveIcon = R.drawable.ic_list_gray
         ),
         BottomNavItem(
             label = "Profile",

@@ -137,8 +137,9 @@ fun HomeScreen(
                 val decimalFormat = DecimalFormat("#.##")
                 val averageCO = decimalFormat.format(data.data.map { it.co }.average())
                 val averageHC = decimalFormat.format(data.data.map { it.hc }.average())
+                val averageOpasitas = decimalFormat.format(data.data.map { it.opasitas }.average())
 
-                HomeScreenContent(username, navController, totalTests, averageCO, averageHC)
+                HomeScreenContent(username, navController, totalTests, averageCO, averageHC, averageOpasitas)
             }
         }
         is Resource.Error -> {
@@ -154,6 +155,7 @@ fun HomeScreenContent(
     totalTest: Int,
     averageCo: String,
     averageHc: String,
+    averageOpasitas: String,
 ) {
     val gradient = Brush.linearGradient(listOf(Color(0xFF6B50F6), Color(0xFFCC8FED)))
 
@@ -315,6 +317,7 @@ fun HomeScreenContent(
             )
             StatisticCard(title = "Rata-rata CO", value = averageCo)
             StatisticCard(title = "Rata-rata HC", value = averageHc)
+            StatisticCard(title = "Rata-rata Opasitas", value = averageOpasitas)
         }
     }
 }
@@ -407,22 +410,22 @@ fun NavHostContainer(
 
             // route : form
             composable("form") {
-                FormScreen()
+                FormScreen(navController)
             }
 
             // route : logo
             composable("logo") {
-                FormScreen()
+                FormScreen(navController)
             }
 
-            // route : camera
-            composable("camera") {
-                FormScreen()
+            // route : list
+            composable("list") {
+                FormScreen(navController)
             }
 
             // route : profile
             composable("profile") {
-                FormScreen()
+                FormScreen(navController)
             }
         }
     )

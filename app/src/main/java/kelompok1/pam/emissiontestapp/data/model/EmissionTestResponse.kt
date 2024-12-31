@@ -5,6 +5,11 @@ data class EmissionTestResponse(
     val data: List<EmissionTest>
 )
 
+data class EmissionTestSingleResponse(
+    val meta: Meta,
+    val data: EmissionTest
+)
+
 data class EmissionTest(
     val id: Int,
     val kendaraan_id: Int,
