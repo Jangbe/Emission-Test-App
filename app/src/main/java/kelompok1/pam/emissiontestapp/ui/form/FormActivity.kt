@@ -1,6 +1,7 @@
 package kelompok1.pam.emissiontestapp.ui.form
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,22 +34,35 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import kelompok1.pam.emissiontestapp.data.model.EmissionTestRequest
+import kelompok1.pam.emissiontestapp.repository.EmissionTestRepository
+import kelompok1.pam.emissiontestapp.ui.home.EmissionTestViewModel
 import kelompok1.pam.emissiontestapp.ui.login.GradientButton
+import kelompok1.pam.emissiontestapp.utils.Resource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormScreen() {
+fun FormScreen(navController: NavController, emissionTestId: Int?) {
+    val viewModel: EmissionTestViewModel by lazy {
+        EmissionTestViewModel(EmissionTestRepository())
+    }
+
     val bahanBakarOptions = listOf("Bensin", "Solar", "Gas")
     val kendaraanKategoriOptions = listOf(
         "Angkutan Orang",
@@ -56,8 +72,26 @@ fun FormScreen() {
         "Sepeda Motor 4 Tak"
     )
 
+    var noPolisi by remember { mutableStateOf("") }
+    var merk by remember { mutableStateOf("") }
+    var tipe by remember { mutableStateOf("") }
+    var cc by remember { mutableStateOf("") }
+    var tahun by remember { mutableStateOf("") }
     var selectedBahanBakar by remember { mutableStateOf("") }
     var selectedKendaraanKategori by remember { mutableStateOf("") }
+    var noRangka by remember { mutableStateOf("") }
+    var noMesin by remember { mutableStateOf("") }
+    var odometer by remember { mutableStateOf("") }
+    var co by remember { mutableStateOf("") }
+    var hc by remember { mutableStateOf("") }
+    var opasitas by remember { mutableStateOf("") }
+    var co2 by remember { mutableStateOf("") }
+    var coKoreksi by remember { mutableStateOf("") }
+    var o2 by remember { mutableStateOf("") }
+    var putaran by remember { mutableStateOf("") }
+    var temperatur by remember { mutableStateOf("") }
+    var lambda by remember { mutableStateOf("") }
+    var noSertifikat by remember { mutableStateOf("") }
 
     val gradient = Brush.linearGradient(
         listOf(
@@ -66,11 +100,72 @@ fun FormScreen() {
         )
     )
 
+    val context = LocalContext.current
+
+    LaunchedEffect(emissionTestId) {
+        Log.d("FormActivity", "Emission Test ID: $emissionTestId")
+        emissionTestId?.let {
+            viewModel.getEmissionTestById(context, it)
+        }
+    }
+    val emissionTestState by viewModel.emissionTestByIdState.collectAsState()
+
+
+//    LaunchedEffect(emissionTestState) {
+        Log.d("FormActivity", "Emission Test State: $emissionTestState")
+        when (val state = emissionTestState) {
+            is Resource.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+            is Resource.Success -> {
+                emissionTestState.data?.let { emissionTest ->
+                    Log.d("FormActivity", "Emission Test Data: $emissionTest")
+                    noPolisi = emissionTest.kendaraan.nopol
+                    merk = emissionTest.kendaraan.merk
+                    tipe = emissionTest.kendaraan.tipe
+                    cc = emissionTest.kendaraan.cc.toString()
+                    tahun = emissionTest.kendaraan.tahun.toString()
+                    selectedBahanBakar = emissionTest.kendaraan.bahan_bakar
+                    selectedKendaraanKategori = emissionTest.kendaraan.kendaraan_kategori.toString()
+                    noRangka = emissionTest.kendaraan.no_rangka
+                    noMesin = emissionTest.kendaraan.no_mesin
+                    odometer = emissionTest.odometer.toString()
+                    co = emissionTest.co.toString()
+                    hc = emissionTest.hc.toString()
+                    opasitas = emissionTest.opasitas.toString()
+                    co2 = emissionTest.co2.toString()
+                    coKoreksi = emissionTest.co_koreksi.toString()
+                    o2 = emissionTest.o2.toString()
+                    putaran = emissionTest.putaran.toString()
+                    temperatur = emissionTest.temperatur.toString()
+                    lambda = emissionTest.lambda.toString()
+                    noSertifikat = emissionTest.no_sertifikat
+                }
+            }
+
+            is Resource.Error -> {
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {
+                Log.e("FormActivity", "else")
+            }
+        }
+//    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(
-                    text = "Form Uji Emisi",
+                    text = if (emissionTestId == null) "Form Uji Emisi" else "Edit Uji Emisi",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                 ) },
@@ -96,11 +191,11 @@ fun FormScreen() {
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
-            FormField("No. Polisi")
+            FormField("No. Polisi", value = noPolisi, onValueChange = { noPolisi = it })
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("Merk", "Type")
+            FormRow("Merk", merk, { merk = it }, "Tipe", tipe, { tipe = it })
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("CC", "Tahun")
+            FormRow("CC", cc, { cc = it }, "Tahun", tahun, { tahun = it })
             Spacer(modifier = Modifier.height(8.dp))
             DropdownField(
                 label = "Bahan Bakar",
@@ -115,23 +210,88 @@ fun FormScreen() {
                 selectedOption = selectedKendaraanKategori,
                 onOptionSelected = { selectedKendaraanKategori = it }
             )
+            FormRow("No. Rangka", noRangka, { noRangka = it }, "No. Mesin", noMesin, { noMesin = it })
             Spacer(modifier = Modifier.height(16.dp))
-            FormRow("Odometer (KM)", "CO (%)")
+            FormRow("Odometer (KM)", odometer, { odometer = it }, "CO (%)", co, { co = it })
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("HC (PPM)", "Opasitas")
+            FormRow("HC (PPM)", hc, { hc = it }, "Opasitas", opasitas, { opasitas = it })
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("CO2", "O2 (%)")
+            FormRow("CO2", co2, { co2 = it }, "O2 (%)", o2, { o2 = it })
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("CO Koreksi (%)", "Putaran (RPM)")
+            FormRow("CO Koreksi (%)", coKoreksi, { coKoreksi = it }, "Putaran (RPM)", putaran, { putaran = it })
             Spacer(modifier = Modifier.height(8.dp))
-            FormRow("Suhu Oli (°C)", "Lambda")
+            FormRow("Suhu Oli (°C)", temperatur, { temperatur = it }, "Lambda", lambda, { lambda = it })
+            FormField("No. Sertifikat", value = noSertifikat, onValueChange = { noSertifikat = it })
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Submit button
             GradientButton(
-                onClick = { },
-                text = "Uji",
+                onClick = {
+                    if (emissionTestId == null) {
+                        Log.d("FormActivity", "POST")
+                        // Handle POST (create new emission test)
+                        viewModel.postEmissionTest(
+                            context,
+                            EmissionTestRequest(
+                                nopol = noPolisi,
+                                merk = merk,
+                                tipe = tipe,
+                                cc = cc.toIntOrNull() ?: 0,
+                                tahun = tahun.toIntOrNull() ?: 0,
+                                kendaraan_kategori = kendaraanKategoriOptions.indexOf(
+                                    selectedKendaraanKategori
+                                ) + 1,
+                                bahan_bakar = selectedBahanBakar,
+                                no_rangka = noRangka,
+                                no_mesin = noMesin,
+                                odometer = odometer.toIntOrNull() ?: 0,
+                                co = co.toFloatOrNull() ?: 0f,
+                                hc = hc.toIntOrNull() ?: 0,
+                                opasitas = opasitas.toFloatOrNull() ?: 0f,
+                                co2 = co2.toFloatOrNull() ?: 0f,
+                                co_koreksi = coKoreksi.toFloatOrNull() ?: 0f,
+                                o2 = o2.toFloatOrNull() ?: 0f,
+                                putaran = putaran.toFloatOrNull() ?: 0f,
+                                temperatur = temperatur.toFloatOrNull() ?: 0f,
+                                lambda = lambda.toFloatOrNull() ?: 0f,
+                                no_sertifikat = noSertifikat
+                            )
+                        )
+                    } else {
+                        Log.d("FormActivity", "PUT")
+                        // Handle UPDATE (update existing emission test)
+                        viewModel.updateEmissionTest(
+                            context,
+                            emissionTestId,
+                            EmissionTestRequest(
+                                nopol = noPolisi,
+                                merk = merk,
+                                tipe = tipe,
+                                cc = cc.toIntOrNull() ?: 0,
+                                tahun = tahun.toIntOrNull() ?: 0,
+                                kendaraan_kategori = kendaraanKategoriOptions.indexOf(
+                                    selectedKendaraanKategori
+                                ) + 1,
+                                bahan_bakar = selectedBahanBakar,
+                                no_rangka = noRangka,
+                                no_mesin = noMesin,
+                                odometer = odometer.toIntOrNull() ?: 0,
+                                co = co.toFloatOrNull() ?: 0f,
+                                hc = hc.toIntOrNull() ?: 0,
+                                opasitas = opasitas.toFloatOrNull() ?: 0f,
+                                co2 = co2.toFloatOrNull() ?: 0f,
+                                co_koreksi = coKoreksi.toFloatOrNull() ?: 0f,
+                                o2 = o2.toFloatOrNull() ?: 0f,
+                                putaran = putaran.toFloatOrNull() ?: 0f,
+                                temperatur = temperatur.toFloatOrNull() ?: 0f,
+                                lambda = lambda.toFloatOrNull() ?: 0f,
+                                no_sertifikat = noSertifikat
+                            )
+                        )
+                    }
+                },
+                text = if (emissionTestId == null) "Tambah Uji" else "Perbarui Uji",
                 gradient = gradient,
                 buttonModifier = Modifier
                     .padding(vertical = 16.dp)
@@ -145,6 +305,7 @@ fun FormScreen() {
     }
 }
 
+
 @Composable
 fun DropdownField(
     label: String,
@@ -153,7 +314,6 @@ fun DropdownField(
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Log.d("Form", "Expanded: $expanded")
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -201,10 +361,10 @@ fun DropdownField(
 }
 
 @Composable
-fun FormField(label: String) {
+fun FormField(label: String, value: String, onValueChange: (String) -> Unit) {
     OutlinedTextField(
-        value = "",
-        onValueChange = {},
+        value = value,
+        onValueChange = onValueChange,
         label = { Text(text = label, color = Color(0xFFB6B4C2)) },
         modifier = Modifier
             .fillMaxWidth()
@@ -218,18 +378,43 @@ fun FormField(label: String) {
 }
 
 @Composable
-fun FormRow(label1: String, label2: String) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FormField(label = label1, modifier = Modifier.weight(1f))
-        FormField(label = label2, modifier = Modifier.weight(1f))
+fun FormRow(
+    label1: String,
+    value1: String,
+    onValueChange1: (String) -> Unit,
+    label2: String,
+    value2: String,
+    onValueChange2: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FormField(
+            label = label1,
+            value = value1,
+            onValueChange = onValueChange1,
+            modifier = Modifier.weight(1f)
+        )
+        FormField(
+            label = label2,
+            value = value2,
+            onValueChange = onValueChange2,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
 @Composable
-fun FormField(label: String, modifier: Modifier = Modifier) {
+fun FormField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     OutlinedTextField(
-        value = "",
-        onValueChange = {},
+        value = value,
+        onValueChange = onValueChange,
         label = { Text(text = label, color = Color(0xFFB6B4C2)) },
         modifier = modifier
             .background(Color(0xFFF7F8F8), RoundedCornerShape(8.dp)),

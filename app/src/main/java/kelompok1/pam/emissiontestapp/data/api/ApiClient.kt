@@ -10,7 +10,7 @@ object ApiClient {
     private const val BASE_URL = "https://uji-emisi.jangbe.site/"
 
     // Provide Retrofit instance with context
-    fun provideRetrofit(context: Context): Retrofit {
+    private fun provideRetrofit(context: Context): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)  // Set connection timeout
             .writeTimeout(30, TimeUnit.SECONDS)    // Set write timeout
