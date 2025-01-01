@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -54,11 +53,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kelompok1.pam.emissiontestapp.R
+import kelompok1.pam.emissiontestapp.repository.AuthRepository
 import kelompok1.pam.emissiontestapp.repository.EmissionTestRepository
 import kelompok1.pam.emissiontestapp.repository.EmissionTestViewModelFactory
+import kelompok1.pam.emissiontestapp.repository.LoginViewModelFactory
 import kelompok1.pam.emissiontestapp.ui.form.FormScreen
 import kelompok1.pam.emissiontestapp.ui.list.ListEmissionTestScreen
 import kelompok1.pam.emissiontestapp.ui.login.GradientButton
+import kelompok1.pam.emissiontestapp.ui.login.ProfileScreen
 import kelompok1.pam.emissiontestapp.ui.theme.EmissionTestAppTheme
 import kelompok1.pam.emissiontestapp.utils.Constants
 import kelompok1.pam.emissiontestapp.utils.Resource
@@ -73,6 +75,9 @@ class HomeActivity : ComponentActivity() {
         // Inisialisasi repository dan factory
         val repository = EmissionTestRepository() // Pastikan implementasi repository benar
         val viewModelFactory = EmissionTestViewModelFactory(repository)
+
+        val authRepository = AuthRepository()
+        val authViewModelFactory = LoginViewModelFactory(authRepository)
 
         setContent {
             EmissionTestAppTheme {
@@ -95,6 +100,7 @@ class HomeActivity : ComponentActivity() {
                                 username,
                                 this,
                                 viewModelFactory,
+                                authViewModelFactory
                             )
                         }
                     )
@@ -396,7 +402,8 @@ fun NavHostContainer(
     padding: PaddingValues,
     username: String,
     context: Context,
-    viewModelFactory: EmissionTestViewModelFactory
+    viewModelFactory: EmissionTestViewModelFactory,
+    authViewModelFactory: LoginViewModelFactory
 ) {
     NavHost(
         navController = navController,
@@ -417,7 +424,7 @@ fun NavHostContainer(
             // route : form
             composable("form") {
                 // When no emissionTestId is passed, it's considered as a new emission test
-                FormScreen(navController = navController, emissionTestId = null)
+                FormScreen(viewModelFactory, emissionTestId = null)
             }
 
             composable("form/{emissionTestId}") { backStackEntry ->
@@ -425,7 +432,7 @@ fun NavHostContainer(
                 Log.d("NavHostContainer", "Id: $emissionTestId")
                 if (emissionTestId != null) {
                     // When emissionTestId is passed, it's an update for an existing emission test
-                    FormScreen(navController = navController, emissionTestId = emissionTestId)
+                    FormScreen(viewModelFactory, emissionTestId = emissionTestId)
                 }
             }
 
@@ -440,11 +447,8 @@ fun NavHostContainer(
             }
 
             // route : profile
-            composable("form/{emissionTestId}") { backStackEntry ->
-                val emissionTestId = backStackEntry.arguments?.getString("emissionTestId")?.toInt()
-                if (emissionTestId != null) {
-                    FormScreen(navController, emissionTestId)
-                }
+            composable("profile") {
+                ProfileScreen(context, authViewModelFactory)
             }
         }
     )

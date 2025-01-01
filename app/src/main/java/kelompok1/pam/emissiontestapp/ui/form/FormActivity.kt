@@ -49,19 +49,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kelompok1.pam.emissiontestapp.data.model.EmissionTestRequest
-import kelompok1.pam.emissiontestapp.repository.EmissionTestRepository
+import kelompok1.pam.emissiontestapp.repository.EmissionTestViewModelFactory
 import kelompok1.pam.emissiontestapp.ui.home.EmissionTestViewModel
 import kelompok1.pam.emissiontestapp.ui.login.GradientButton
 import kelompok1.pam.emissiontestapp.utils.Resource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormScreen(navController: NavController, emissionTestId: Int?) {
-    val viewModel: EmissionTestViewModel by lazy {
-        EmissionTestViewModel(EmissionTestRepository())
-    }
+fun FormScreen(viewModelFactory: EmissionTestViewModelFactory, emissionTestId: Int?) {
+    val viewModel: EmissionTestViewModel = viewModel(factory = viewModelFactory)
 
     val bahanBakarOptions = listOf("Bensin", "Solar", "Gas")
     val kendaraanKategoriOptions = listOf(
@@ -112,7 +110,6 @@ fun FormScreen(navController: NavController, emissionTestId: Int?) {
 
 
 //    LaunchedEffect(emissionTestState) {
-        Log.d("FormActivity", "Emission Test State: $emissionTestState")
         when (val state = emissionTestState) {
             is Resource.Loading -> {
                 Box(
@@ -128,26 +125,27 @@ fun FormScreen(navController: NavController, emissionTestId: Int?) {
             is Resource.Success -> {
                 emissionTestState.data?.let { emissionTest ->
                     Log.d("FormActivity", "Emission Test Data: $emissionTest")
-                    noPolisi = emissionTest.kendaraan.nopol
-                    merk = emissionTest.kendaraan.merk
-                    tipe = emissionTest.kendaraan.tipe
-                    cc = emissionTest.kendaraan.cc.toString()
-                    tahun = emissionTest.kendaraan.tahun.toString()
-                    selectedBahanBakar = emissionTest.kendaraan.bahan_bakar
+                    noPolisi = emissionTest.kendaraan.nopol.orEmpty()
+                    merk = emissionTest.kendaraan.merk.orEmpty()
+                    tipe = emissionTest.kendaraan.tipe.orEmpty()
+                    cc = emissionTest.kendaraan.cc.toString() ?: "0"
+                    tahun = emissionTest.kendaraan.tahun.toString() ?: "0"
+                    selectedBahanBakar = emissionTest.kendaraan.bahan_bakar ?: "Tidak Diketahui"
                     selectedKendaraanKategori = emissionTest.kendaraan.kendaraan_kategori.toString()
-                    noRangka = emissionTest.kendaraan.no_rangka
-                    noMesin = emissionTest.kendaraan.no_mesin
-                    odometer = emissionTest.odometer.toString()
-                    co = emissionTest.co.toString()
-                    hc = emissionTest.hc.toString()
-                    opasitas = emissionTest.opasitas.toString()
-                    co2 = emissionTest.co2.toString()
-                    coKoreksi = emissionTest.co_koreksi.toString()
-                    o2 = emissionTest.o2.toString()
-                    putaran = emissionTest.putaran.toString()
-                    temperatur = emissionTest.temperatur.toString()
-                    lambda = emissionTest.lambda.toString()
-                    noSertifikat = emissionTest.no_sertifikat
+                        ?: "Tidak Diketahui"
+                    noRangka = emissionTest.kendaraan.no_rangka.orEmpty()
+                    noMesin = emissionTest.kendaraan.no_mesin.orEmpty()
+                    odometer = emissionTest.odometer.toString() ?: "0"
+                    co = emissionTest.co.toString() ?: "0.0"
+                    hc = emissionTest.hc.toString() ?: "0.0"
+                    opasitas = emissionTest.opasitas.toString() ?: "0.0"
+                    co2 = emissionTest.co2.toString() ?: "0.0"
+                    coKoreksi = emissionTest.co_koreksi.toString() ?: "0.0"
+                    o2 = emissionTest.o2.toString() ?: "0.0"
+                    putaran = emissionTest.putaran.toString() ?: "0"
+                    temperatur = emissionTest.temperatur.toString() ?: "0.0"
+                    lambda = emissionTest.lambda.toString() ?: "0.0"
+                    noSertifikat = emissionTest.no_sertifikat.orEmpty()
                 }
             }
 

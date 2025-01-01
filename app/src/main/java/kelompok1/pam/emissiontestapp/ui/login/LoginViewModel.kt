@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kelompok1.pam.emissiontestapp.data.model.LoginResponse
+import kelompok1.pam.emissiontestapp.data.model.User
 import kelompok1.pam.emissiontestapp.repository.AuthRepository
 import kelompok1.pam.emissiontestapp.utils.Resource
 import kelompok1.pam.emissiontestapp.utils.TokenManager
@@ -15,6 +16,9 @@ import kotlinx.coroutines.launch
 open class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
     private val _loginState = MutableStateFlow<Resource<LoginResponse>>(Resource.Loading())
     val loginState: StateFlow<Resource<LoginResponse>> = _loginState
+
+    private val _userState = MutableStateFlow<Resource<User>>(Resource.Loading())
+    val userState: StateFlow<Resource<User>> = _userState
 
     fun login(context: Context, username: String, password: String) {
         viewModelScope.launch {
@@ -45,6 +49,39 @@ open class LoginViewModel(private val authRepository: AuthRepository) : ViewMode
                 Log.e("LoginViewModel", "Exception during login: ${e.message}", e)
                 _loginState.value =
                     Resource.Error("An error occurred. Please check your connection.")
+            }
+        }
+    }
+
+    fun getUser(context: Context) {
+        viewModelScope.launch {
+            _userState.value = Resource.Loading()
+            try {
+                val response = authRepository.getUser(context)
+
+                // Log respons mentah dari server
+                Log.d("AuthViewModel", "Raw Response: $response")
+
+                if (response.isSuccessful) {
+                    val bodyString = response.body()
+                    Log.d("EmissionTestViewModel", "Body String: $bodyString")
+
+                    // Check if the body is null
+                    if (bodyString != null) {
+                        _userState.value = Resource.Success(bodyString)
+                        Log.d("EmissionTestViewModel", "userstate: ${_userState.value}")
+
+                    } else {
+                        _userState.value = Resource.Error("Response body is null")
+                    }
+                } else {
+                    _userState.value =
+                        Resource.Error("Failed with code: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("EmissionTestViewModel", "Exception: ${e.message}", e)
+                _userState.value =
+                    Resource.Error("An error occurred: ${e.message ?: "Unknown error"}")
             }
         }
     }
