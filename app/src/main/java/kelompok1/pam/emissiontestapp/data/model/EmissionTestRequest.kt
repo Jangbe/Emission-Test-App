@@ -1,7 +1,6 @@
 package kelompok1.pam.emissiontestapp.data.model
 
 data class EmissionTestRequest(
-    val user_id: Int,
     val nopol: String,
     val merk: String,
     val tipe: String,
@@ -9,6 +8,8 @@ data class EmissionTestRequest(
     val tahun: Int,
     val kendaraan_kategori: Int,
     val bahan_bakar: String,
+    val no_rangka: String,
+    val no_mesin: String,
     val odometer: Int,
     val co: Float,
     val hc: Int,

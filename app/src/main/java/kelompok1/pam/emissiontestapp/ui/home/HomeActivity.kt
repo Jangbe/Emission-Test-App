@@ -1,10 +1,13 @@
 package kelompok1.pam.emissiontestapp.ui.home
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +57,7 @@ import kelompok1.pam.emissiontestapp.R
 import kelompok1.pam.emissiontestapp.repository.EmissionTestRepository
 import kelompok1.pam.emissiontestapp.repository.EmissionTestViewModelFactory
 import kelompok1.pam.emissiontestapp.ui.form.FormScreen
+import kelompok1.pam.emissiontestapp.ui.list.ListEmissionTestScreen
 import kelompok1.pam.emissiontestapp.ui.login.GradientButton
 import kelompok1.pam.emissiontestapp.ui.theme.EmissionTestAppTheme
 import kelompok1.pam.emissiontestapp.utils.Constants
@@ -62,6 +66,7 @@ import kelompok1.pam.emissiontestapp.utils.TokenManager
 import java.text.DecimalFormat
 
 class HomeActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -384,6 +389,7 @@ fun StatisticCard(title: String, value: String) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavHostContainer(
     navController: NavHostController,
@@ -410,22 +416,35 @@ fun NavHostContainer(
 
             // route : form
             composable("form") {
-                FormScreen(navController)
+                // When no emissionTestId is passed, it's considered as a new emission test
+                FormScreen(navController = navController, emissionTestId = null)
+            }
+
+            composable("form/{emissionTestId}") { backStackEntry ->
+                val emissionTestId = backStackEntry.arguments?.getString("emissionTestId")?.toInt()
+                Log.d("NavHostContainer", "Id: $emissionTestId")
+                if (emissionTestId != null) {
+                    // When emissionTestId is passed, it's an update for an existing emission test
+                    FormScreen(navController = navController, emissionTestId = emissionTestId)
+                }
             }
 
             // route : logo
             composable("logo") {
-                FormScreen(navController)
+                HomeScreen(context, username, viewModelFactory, navController)
             }
 
             // route : list
             composable("list") {
-                FormScreen(navController)
+                ListEmissionTestScreen(context, navController, viewModelFactory)
             }
 
             // route : profile
-            composable("profile") {
-                FormScreen(navController)
+            composable("form/{emissionTestId}") { backStackEntry ->
+                val emissionTestId = backStackEntry.arguments?.getString("emissionTestId")?.toInt()
+                if (emissionTestId != null) {
+                    FormScreen(navController, emissionTestId)
+                }
             }
         }
     )

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -55,7 +58,7 @@ import kelompok1.pam.emissiontestapp.utils.Resource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FormScreen(navController: NavController) {
+fun FormScreen(navController: NavController, emissionTestId: Int?) {
     val viewModel: EmissionTestViewModel by lazy {
         EmissionTestViewModel(EmissionTestRepository())
     }
@@ -76,6 +79,8 @@ fun FormScreen(navController: NavController) {
     var tahun by remember { mutableStateOf("") }
     var selectedBahanBakar by remember { mutableStateOf("") }
     var selectedKendaraanKategori by remember { mutableStateOf("") }
+    var noRangka by remember { mutableStateOf("") }
+    var noMesin by remember { mutableStateOf("") }
     var odometer by remember { mutableStateOf("") }
     var co by remember { mutableStateOf("") }
     var hc by remember { mutableStateOf("") }
@@ -95,31 +100,72 @@ fun FormScreen(navController: NavController) {
         )
     )
 
-    // Tambahkan state untuk memantau status pengujian emisi
-    val emissionTestState by viewModel.emissionTestState.collectAsState()
-
     val context = LocalContext.current
 
-    LaunchedEffect(emissionTestState) {
-        when (val state = emissionTestState) {
-            is Resource.Success -> {
-                Toast.makeText(context, "Pengujian Emisi Berhasil!", Toast.LENGTH_SHORT).show()
-                navController.navigate("home") { // Ganti "home" dengan route halaman utama Anda
-                    popUpTo("form") { inclusive = true } // Menghapus form dari back stack
-                }
-            }
-            is Resource.Error -> {
-                Toast.makeText(context, "Pengujian Gagal: ${state.message}", Toast.LENGTH_SHORT).show()
-            }
-            else -> Unit
+    LaunchedEffect(emissionTestId) {
+        Log.d("FormActivity", "Emission Test ID: $emissionTestId")
+        emissionTestId?.let {
+            viewModel.getEmissionTestById(context, it)
         }
     }
+    val emissionTestState by viewModel.emissionTestByIdState.collectAsState()
+
+
+//    LaunchedEffect(emissionTestState) {
+        Log.d("FormActivity", "Emission Test State: $emissionTestState")
+        when (val state = emissionTestState) {
+            is Resource.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+            is Resource.Success -> {
+                emissionTestState.data?.let { emissionTest ->
+                    Log.d("FormActivity", "Emission Test Data: $emissionTest")
+                    noPolisi = emissionTest.kendaraan.nopol
+                    merk = emissionTest.kendaraan.merk
+                    tipe = emissionTest.kendaraan.tipe
+                    cc = emissionTest.kendaraan.cc.toString()
+                    tahun = emissionTest.kendaraan.tahun.toString()
+                    selectedBahanBakar = emissionTest.kendaraan.bahan_bakar
+                    selectedKendaraanKategori = emissionTest.kendaraan.kendaraan_kategori.toString()
+                    noRangka = emissionTest.kendaraan.no_rangka
+                    noMesin = emissionTest.kendaraan.no_mesin
+                    odometer = emissionTest.odometer.toString()
+                    co = emissionTest.co.toString()
+                    hc = emissionTest.hc.toString()
+                    opasitas = emissionTest.opasitas.toString()
+                    co2 = emissionTest.co2.toString()
+                    coKoreksi = emissionTest.co_koreksi.toString()
+                    o2 = emissionTest.o2.toString()
+                    putaran = emissionTest.putaran.toString()
+                    temperatur = emissionTest.temperatur.toString()
+                    lambda = emissionTest.lambda.toString()
+                    noSertifikat = emissionTest.no_sertifikat
+                }
+            }
+
+            is Resource.Error -> {
+                Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {
+                Log.e("FormActivity", "else")
+            }
+        }
+//    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(
-                    text = "Form Uji Emisi",
+                    text = if (emissionTestId == null) "Form Uji Emisi" else "Edit Uji Emisi",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                 ) },
@@ -164,6 +210,7 @@ fun FormScreen(navController: NavController) {
                 selectedOption = selectedKendaraanKategori,
                 onOptionSelected = { selectedKendaraanKategori = it }
             )
+            FormRow("No. Rangka", noRangka, { noRangka = it }, "No. Mesin", noMesin, { noMesin = it })
             Spacer(modifier = Modifier.height(16.dp))
             FormRow("Odometer (KM)", odometer, { odometer = it }, "CO (%)", co, { co = it })
             Spacer(modifier = Modifier.height(8.dp))
@@ -178,37 +225,73 @@ fun FormScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            val context = LocalContext.current
-
             // Submit button
             GradientButton(
                 onClick = {
-                    viewModel.postEmissionTest(
-                        context,
-                        EmissionTestRequest(
-                            user_id = 1, // Contoh ID user
-                            nopol = noPolisi,
-                            merk = merk,
-                            tipe = tipe,
-                            cc = cc.toIntOrNull() ?: 0,
-                            tahun = tahun.toIntOrNull() ?: 0,
-                            kendaraan_kategori = kendaraanKategoriOptions.indexOf(selectedKendaraanKategori) + 1,
-                            bahan_bakar = selectedBahanBakar,
-                            odometer = odometer.toIntOrNull() ?: 0,
-                            co = co.toFloatOrNull() ?: 0f,
-                            hc = hc.toIntOrNull() ?: 0,
-                            opasitas = opasitas.toFloatOrNull() ?: 0f,
-                            co2 = co2.toFloatOrNull() ?: 0f,
-                            co_koreksi = coKoreksi.toFloatOrNull() ?: 0f,
-                            o2 = o2.toFloatOrNull() ?: 0f,
-                            putaran = putaran.toFloatOrNull() ?: 0f,
-                            temperatur = temperatur.toFloatOrNull() ?: 0f,
-                            lambda = lambda.toFloatOrNull() ?: 0f,
-                            no_sertifikat = noSertifikat
+                    if (emissionTestId == null) {
+                        Log.d("FormActivity", "POST")
+                        // Handle POST (create new emission test)
+                        viewModel.postEmissionTest(
+                            context,
+                            EmissionTestRequest(
+                                nopol = noPolisi,
+                                merk = merk,
+                                tipe = tipe,
+                                cc = cc.toIntOrNull() ?: 0,
+                                tahun = tahun.toIntOrNull() ?: 0,
+                                kendaraan_kategori = kendaraanKategoriOptions.indexOf(
+                                    selectedKendaraanKategori
+                                ) + 1,
+                                bahan_bakar = selectedBahanBakar,
+                                no_rangka = noRangka,
+                                no_mesin = noMesin,
+                                odometer = odometer.toIntOrNull() ?: 0,
+                                co = co.toFloatOrNull() ?: 0f,
+                                hc = hc.toIntOrNull() ?: 0,
+                                opasitas = opasitas.toFloatOrNull() ?: 0f,
+                                co2 = co2.toFloatOrNull() ?: 0f,
+                                co_koreksi = coKoreksi.toFloatOrNull() ?: 0f,
+                                o2 = o2.toFloatOrNull() ?: 0f,
+                                putaran = putaran.toFloatOrNull() ?: 0f,
+                                temperatur = temperatur.toFloatOrNull() ?: 0f,
+                                lambda = lambda.toFloatOrNull() ?: 0f,
+                                no_sertifikat = noSertifikat
+                            )
                         )
-                    )
+                    } else {
+                        Log.d("FormActivity", "PUT")
+                        // Handle UPDATE (update existing emission test)
+                        viewModel.updateEmissionTest(
+                            context,
+                            emissionTestId,
+                            EmissionTestRequest(
+                                nopol = noPolisi,
+                                merk = merk,
+                                tipe = tipe,
+                                cc = cc.toIntOrNull() ?: 0,
+                                tahun = tahun.toIntOrNull() ?: 0,
+                                kendaraan_kategori = kendaraanKategoriOptions.indexOf(
+                                    selectedKendaraanKategori
+                                ) + 1,
+                                bahan_bakar = selectedBahanBakar,
+                                no_rangka = noRangka,
+                                no_mesin = noMesin,
+                                odometer = odometer.toIntOrNull() ?: 0,
+                                co = co.toFloatOrNull() ?: 0f,
+                                hc = hc.toIntOrNull() ?: 0,
+                                opasitas = opasitas.toFloatOrNull() ?: 0f,
+                                co2 = co2.toFloatOrNull() ?: 0f,
+                                co_koreksi = coKoreksi.toFloatOrNull() ?: 0f,
+                                o2 = o2.toFloatOrNull() ?: 0f,
+                                putaran = putaran.toFloatOrNull() ?: 0f,
+                                temperatur = temperatur.toFloatOrNull() ?: 0f,
+                                lambda = lambda.toFloatOrNull() ?: 0f,
+                                no_sertifikat = noSertifikat
+                            )
+                        )
+                    }
                 },
-                text = "Uji",
+                text = if (emissionTestId == null) "Tambah Uji" else "Perbarui Uji",
                 gradient = gradient,
                 buttonModifier = Modifier
                     .padding(vertical = 16.dp)
@@ -231,7 +314,6 @@ fun DropdownField(
     onOptionSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Log.d("Form", "Expanded: $expanded")
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
